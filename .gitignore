@@ -24,12 +24,10 @@ Thumbs.db
 # Power BI temporary files
 *.pbit.cache
 
-.venv/
-
 # Raw and processed data
 data/raw/*
 data/processed/*
 
-# Keep directories in Git
+# Keep directories in Git for layout
 !data/raw/.gitkeep
 !data/processed/.gitkeep
