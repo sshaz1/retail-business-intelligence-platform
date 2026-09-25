@@ -13,6 +13,18 @@ From PowerShell:
 - `psql` starts the PostgreSQL command-line client.
 - `-U postgres` connects using the `postgres` database user.
 
+### Disable Paginated Output
+
+`\pset pager off`
+
+Disables the psql pager so long query results and table descriptions are printed directly to the terminal instead of pausing with `-- More --`.
+
+### Exit psql
+
+`\q`
+
+Exits the psql command-line client and returns to the regular terminal.
+
 ## Database Commands
 
 ### List Databases
@@ -56,3 +68,4 @@ Displays the columns, data types, indexes, and constraints for the `customers` t
 `\i 'D:/sql/schema.sql'`
 
 Executes the SQL statements stored in `schema.sql`.
+
