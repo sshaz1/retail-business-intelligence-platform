@@ -65,7 +65,7 @@ Displays the columns, data types, indexes, and constraints for the `customers` t
 
 ### Execute a SQL File
 
-`\i 'D:/sql/schema.sql'`
+`\i 'D:/Documents/Career/Projects/retail-business-intelligence-platform/sql/schema.sql'`
 
 Executes the SQL statements stored in `schema.sql`.
 

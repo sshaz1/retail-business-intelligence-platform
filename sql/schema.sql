@@ -12,11 +12,13 @@
 -- because of foreign key relationships.
 -- ------------------------------------------------------------
 
-DROP TABLE IF EXISTS orders; -- IF EXISTS so it doesn't fail if the table doesn't exist
+ -- IF EXISTS so it doesn't fail if the table doesn't exist
 -- customers can't be deleted if orders exist since orders references customers table. therefore delete orders first.
 -- work backwards when dropping, forward when creating
+DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS customers;
-
 
 -- ------------------------------------------------------------
 -- Customers Table
@@ -29,7 +31,31 @@ CREATE TABLE customers (
     customer_unique_id VARCHAR(32) NOT NULL, -- Identifier used to recognize the same customer across orders, NOT NULL refuses a row where variable is missing
     customer_zip_code_prefix INTEGER,        -- First digits of the customer's postal code
     customer_city VARCHAR(100),              -- Customer's city
-    customer_state CHAR(2)                   -- Two-character Brazilian state code, CHAR to add padding incase the its just 1 letter
+    customer_state CHAR(2)                   -- Fixed two-character Brazilian state code, will pad if only 1 letter provided
+);
+
+-- ------------------------------------------------------------
+-- Products Table
+-- Stores product category, descriptive metadata, physical
+-- measurements, and data-quality flags.
+-- product_id uniquely identifies each product.
+-- Numeric product attributes allow NULL because some products
+-- contain missing metadata or measurements in the source data.
+-- ------------------------------------------------------------
+
+CREATE TABLE products (
+    product_id VARCHAR(32) PRIMARY KEY,                    -- Unique identifier for each product
+    product_category_name VARCHAR(100) NOT NULL,           -- Original Portuguese product category
+    product_name_length INTEGER,                           -- Number of characters in the product name
+    product_description_length INTEGER,                    -- Number of characters in the product description
+    product_photos_qty INTEGER,                            -- Number of product photos
+    product_weight_g INTEGER,                              -- Product weight in grams
+    product_length_cm INTEGER,                             -- Product length in centimetres
+    product_height_cm INTEGER,                             -- Product height in centimetres
+    product_width_cm INTEGER,                              -- Product width in centimetres
+    product_metadata_missing BOOLEAN NOT NULL,             -- Flags missing descriptive product metadata
+    product_measurements_missing BOOLEAN NOT NULL,         -- Flags missing physical product measurements
+    product_category_name_english VARCHAR(100) NOT NULL    -- English product category
 );
 
 -- ------------------------------------------------------------
@@ -80,9 +106,15 @@ CREATE TABLE order_items (
     price NUMERIC(10, 2) NOT NULL,              -- Product price
     freight_value NUMERIC(10, 2) NOT NULL,      -- Freight/shipping charge
 
+    -- A composite primary key using order_id and order_item_id
     CONSTRAINT pk_order_items
         PRIMARY KEY (order_id, order_item_id),
 
+    -- Foreign key order_id references order_id from orders TABLE
     CONSTRAINT fk_order_items_order
-        FOREIGN KEY (order_id) REFERENCES orders(order_id)
+        FOREIGN KEY (order_id) REFERENCES orders(order_id),
+
+    -- Foreign key product_id references product_id from products TABLE
+    CONSTRAINT fk_order_items_product
+        FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
