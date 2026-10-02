@@ -22,6 +22,29 @@ DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS sellers;
 DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS geolocation;
+
+-- ------------------------------------------------------------
+-- Geolocation Table
+-- Stores one representative geographic location per ZIP code prefix.
+-- The original geolocation data was aggregated to ZIP code level
+-- using median coordinates and the most frequent city and state.
+-- ------------------------------------------------------------
+
+CREATE TABLE geolocation (
+    geolocation_zip_code_prefix INTEGER PRIMARY KEY,    -- Unique ZIP code prefix
+
+    -- DOUBLE PRECISION is used instead of NUMERIC because latitude and longitude
+    -- are continuous geographic measurements that do not require exact decimal
+    -- arithmetic. DOUBLE PRECISION efficiently provides sufficient precision
+    -- for coordinates, while NUMERIC is better suited for values such as money
+    -- where exact decimal representation is important.
+    geolocation_lat DOUBLE PRECISION NOT NULL,          -- Median latitude for the ZIP code prefix
+    geolocation_lng DOUBLE PRECISION NOT NULL,          -- Median longitude for the ZIP code prefix
+
+    geolocation_city VARCHAR(100) NOT NULL,             -- Most frequently occurring city for the ZIP code prefix
+    geolocation_state CHAR(2) NOT NULL                  -- Most frequently occurring state for the ZIP code prefix
+);
 
 -- ------------------------------------------------------------
 -- Customers Table
