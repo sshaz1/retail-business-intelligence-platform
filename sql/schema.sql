@@ -16,8 +16,11 @@
 -- customers can't be deleted if orders exist since orders references customers table. therefore delete orders first.
 -- work backwards when dropping, forward when creating
 DROP TABLE IF EXISTS order_items;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS sellers;
 DROP TABLE IF EXISTS customers;
 
 -- ------------------------------------------------------------
@@ -59,6 +62,19 @@ CREATE TABLE products (
 );
 
 -- ------------------------------------------------------------
+-- Sellers Table
+-- Stores seller identifiers and geographic information.
+-- seller_id uniquely identifies each seller.
+-- ------------------------------------------------------------
+
+CREATE TABLE sellers (
+    seller_id VARCHAR(32) PRIMARY KEY,      -- Unique identifier for each seller
+    seller_zip_code_prefix INTEGER,         -- First digits of the seller's postal code
+    seller_city VARCHAR(100),               -- Seller's city
+    seller_state CHAR(2)                    -- Fixed two-character Brazilian state code
+);
+
+-- ------------------------------------------------------------
 -- Orders Table
 -- Stores each order and its lifecycle timestamps.
 -- customer_id links each order to a record in the customers table.
@@ -89,6 +105,48 @@ CREATE TABLE orders (
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
 
+CREATE TABLE reviews (
+    review_id VARCHAR(32) NOT NULL,                    -- Identifier associated with the review
+    order_id VARCHAR(32) NOT NULL,                     -- Order associated with the review
+    review_score INTEGER NOT NULL,                     -- Customer review score
+    review_comment_title VARCHAR(100) NOT NULL,        -- Review title, or "No title" when not provided
+    review_comment_message TEXT NOT NULL,              -- Review message, or "No comment" when not provided
+    review_creation_date TIMESTAMP NOT NULL,           -- Date the review was created
+    review_answer_timestamp TIMESTAMP NOT NULL,        -- Date and time the review was answered
+
+    -- Composite primary key uniquely identifies each review record
+    CONSTRAINT pk_reviews
+        PRIMARY KEY (review_id, order_id),
+
+    -- Foreign key order_id references order_id from orders table
+    CONSTRAINT fk_reviews_order
+        FOREIGN KEY (order_id) REFERENCES orders(order_id)
+);
+
+-- ------------------------------------------------------------
+-- Payments Table
+-- Stores payment information associated with each order.
+-- An order can have multiple payment records, so order_id alone
+-- is not unique. The combination of order_id and
+-- payment_sequential uniquely identifies each payment record.
+-- ------------------------------------------------------------
+
+CREATE TABLE payments (
+    order_id VARCHAR(32) NOT NULL,             -- Order associated with the payment
+    payment_sequential INTEGER NOT NULL,       -- Payment sequence number within the order
+    payment_type VARCHAR(20) NOT NULL,         -- Method used to make the payment
+    payment_installments INTEGER NOT NULL,     -- Number of payment installments
+    payment_value NUMERIC(10, 2) NOT NULL,     -- Payment amount
+
+    -- Composite primary key uniquely identifies each payment within an order
+    CONSTRAINT pk_payments
+        PRIMARY KEY (order_id, payment_sequential),
+
+    -- Foreign key order_id references order_id from orders table
+    CONSTRAINT fk_payments_order
+        FOREIGN KEY (order_id) REFERENCES orders(order_id)
+);
+
 -- ------------------------------------------------------------
 -- Order Items Table
 -- Stores the individual products contained within each order.
@@ -116,5 +174,9 @@ CREATE TABLE order_items (
 
     -- Foreign key product_id references product_id from products TABLE
     CONSTRAINT fk_order_items_product
-        FOREIGN KEY (product_id) REFERENCES products(product_id)
+        FOREIGN KEY (product_id) REFERENCES products(product_id),
+
+    -- Foreign key seller_id references seller_id from sellers table
+    CONSTRAINT fk_order_items_seller
+        FOREIGN KEY (seller_id) REFERENCES sellers(seller_id)
 );
