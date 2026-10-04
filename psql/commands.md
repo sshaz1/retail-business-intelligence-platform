@@ -81,6 +81,63 @@ Executes the SQL statements stored in `schema.sql`.
 - `HEADER true` — Tells PostgreSQL that the first row contains column names and should not be imported as data.
 - `ENCODING 'UTF8'` — Tells PostgreSQL to interpret the file using UTF-8 encoding, which supports accented and special characters.
 
+### SQL Syntax Order vs. Logical Execution Order
+
+SQL has two different orders to understand:
+
+- **Syntax order** — the order SQL clauses are written.
+- **Logical execution order** — the order PostgreSQL conceptually processes those clauses.
+
+| Order | Syntax / Written Order | Logical Execution Order |
+|---|---|---|
+| 1 | `SELECT` | `FROM` |
+| 2 | `FROM` | `JOIN / ON` |
+| 3 | `JOIN / ON` | `WHERE` |
+| 4 | `WHERE` | `GROUP BY` |
+| 5 | `GROUP BY` | `HAVING` |
+| 6 | `HAVING` | `SELECT` |
+| 7 | `ORDER BY` | `ORDER BY` |
+| 8 | `LIMIT` | `LIMIT` |
+
+### Syntax Order
+
+This is how the query is written:
+
+```sql
+SELECT ...
+FROM ...
+JOIN ... ON ...
+WHERE ...
+GROUP BY ...
+HAVING ...
+ORDER BY ...
+LIMIT ...;
+```
+
+### Logical Execution Order
+
+This is how to think about PostgreSQL processing the query:
+
+```text
+FROM
+  ↓
+JOIN / ON
+  ↓
+WHERE
+  ↓
+GROUP BY
+  ↓
+HAVING
+  ↓
+SELECT
+  ↓
+ORDER BY
+  ↓
+LIMIT
+```
+
+The main thing to remember is that `SELECT` is **written first**, but logically processed after PostgreSQL determines the tables, joins, filters, and groups.
+
 ## Validating Loaded Data
 
 After importing data into PostgreSQL, validation queries are used to confirm that the data was loaded correctly.
@@ -112,3 +169,75 @@ SELECT * FROM geolocation LIMIT 5;
 - `LIMIT 5` — Returns only the first 5 rows.
 
 Previewing the data helps confirm that the values were imported into the correct columns and appear as expected.
+
+## Database Integrity Checks
+
+After loading the processed data, integrity checks are used to confirm that relationships between tables are valid.
+
+### Check for Orphaned Orders
+
+Checks whether any orders reference a customer that does not exist.
+
+```sql
+SELECT COUNT(*) AS orphaned_orders
+FROM orders o
+LEFT JOIN customers c
+    ON o.customer_id = c.customer_id
+WHERE c.customer_id IS NULL;
+```
+
+- `LEFT JOIN` keeps every order and attempts to find its matching customer.
+- `o` and `c` are aliases for the `orders` and `customers` tables.
+- `WHERE c.customer_id IS NULL` finds orders that did not match a customer.
+- The expected result is `0` because our foreign key already enforced this relationship during loading.
+
+### Check Order Item Relationships
+
+Checks whether every order item has a valid order, product, and seller.
+
+```sql
+SELECT
+    COUNT(*) FILTER (WHERE o.order_id IS NULL) AS missing_orders,
+    COUNT(*) FILTER (WHERE p.product_id IS NULL) AS missing_products,
+    COUNT(*) FILTER (WHERE s.seller_id IS NULL) AS missing_sellers
+FROM order_items oi
+LEFT JOIN orders o ON oi.order_id = o.order_id
+LEFT JOIN products p ON oi.product_id = p.product_id
+LEFT JOIN sellers s ON oi.seller_id = s.seller_id;
+```
+A `LEFT JOIN` keeps every row from the table on the left and searches for a matching row in the table on the right. For example:
+
+```sql
+FROM order_items oi
+LEFT JOIN orders o ON oi.order_id = o.order_id
+```
+takes every order item and searches for an order with the same `order_id`.
+If no matching order exists, the columns from `orders` become `NULL`.
+
+All three results should be `0`.
+
+### Check Geolocation Coverage
+
+Checks how many customer and seller ZIP codes do not have a matching record in the geolocation table.
+
+```sql
+SELECT COUNT(*) AS customers_without_geolocation
+FROM customers c
+LEFT JOIN geolocation g
+    ON c.customer_zip_code_prefix = g.geolocation_zip_code_prefix
+WHERE g.geolocation_zip_code_prefix IS NULL;
+```
+
+Expected result: `278`
+
+```sql
+SELECT COUNT(*) AS sellers_without_geolocation
+FROM sellers s
+LEFT JOIN geolocation g
+    ON s.seller_zip_code_prefix = g.geolocation_zip_code_prefix
+WHERE g.geolocation_zip_code_prefix IS NULL;
+```
+
+Expected result: `7`
+
+These unmatched ZIP codes are why customer and seller ZIP prefixes were not defined as foreign keys to the geolocation table.
