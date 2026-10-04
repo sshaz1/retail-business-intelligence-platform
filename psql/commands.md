@@ -69,3 +69,46 @@ Displays the columns, data types, indexes, and constraints for the `customers` t
 
 Executes the SQL statements stored in `schema.sql`.
 
+## Loading processed Data
+```text
+\copy table_name FROM 'file_path' WITH (FORMAT csv, HEADER true, ENCODING 'UTF8');
+```
+
+- `\copy` — Imports data from a file on the local computer into PostgreSQL.
+- `table_name` — The PostgreSQL table where the data will be inserted.
+- `FROM 'file_path'` — Specifies the location of the file being imported.
+- `FORMAT csv` — Tells PostgreSQL that the file uses CSV (Comma-Separated Values) format.
+- `HEADER true` — Tells PostgreSQL that the first row contains column names and should not be imported as data.
+- `ENCODING 'UTF8'` — Tells PostgreSQL to interpret the file using UTF-8 encoding, which supports accented and special characters.
+
+## Validating Loaded Data
+
+After importing data into PostgreSQL, validation queries are used to confirm that the data was loaded correctly.
+
+### Count Rows
+
+Use `COUNT(*)` to check the total number of rows in a table:
+
+```sql
+SELECT COUNT(*) FROM geolocation;
+```
+
+- `SELECT` — Retrieves data from the database.
+- `COUNT(*)` — Counts every row in the table.
+- `FROM geolocation` — Specifies the table being counted.
+
+The result can be compared with the number of rows in the processed CSV to confirm that all records were imported.
+
+### Preview Data
+
+Use `LIMIT` to inspect a small number of rows:
+
+```sql
+SELECT * FROM geolocation LIMIT 5;
+```
+
+- `SELECT *` — Retrieves all columns.
+- `FROM geolocation` — Specifies the table to retrieve data from.
+- `LIMIT 5` — Returns only the first 5 rows.
+
+Previewing the data helps confirm that the values were imported into the correct columns and appear as expected.

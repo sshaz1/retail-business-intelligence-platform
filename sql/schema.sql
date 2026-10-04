@@ -44,6 +44,11 @@ CREATE TABLE geolocation (
 
     geolocation_city VARCHAR(100) NOT NULL,             -- Most frequently occurring city for the ZIP code prefix
     geolocation_state CHAR(2) NOT NULL                  -- Most frequently occurring state for the ZIP code prefix
+    -- Customer and seller ZIP code prefixes are not defined as foreign keys
+    -- to this table because the source geolocation data does not provide
+    -- complete ZIP code coverage. Validation found 278 customer records and
+    -- 7 seller records with ZIP code prefixes missing from geolocation.
+    -- The ZIP fields can still be joined to this table for geographic analysis.
 );
 
 -- ------------------------------------------------------------
@@ -128,6 +133,13 @@ CREATE TABLE orders (
         FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
 
+-- ------------------------------------------------------------
+-- Reviews Table
+-- Stores customer reviews associated with orders.
+-- Neither review_id nor order_id is unique by itself.
+-- The combination of review_id and order_id uniquely identifies
+-- each review record.
+-- ------------------------------------------------------------
 CREATE TABLE reviews (
     review_id VARCHAR(32) NOT NULL,                    -- Identifier associated with the review
     order_id VARCHAR(32) NOT NULL,                     -- Order associated with the review
