@@ -138,6 +138,13 @@ LIMIT
 
 The main thing to remember is that `SELECT` is **written first**, but logically processed after PostgreSQL determines the tables, joins, filters, and groups.
 
+### Join differences
+
+| Join         | What gets kept?                                      |
+| ------------ | ---------------------------------------------------- |
+| `INNER JOIN` | Only rows that **match on both sides**               |
+| `LEFT JOIN`  | **All left-table rows**, plus matches from the right |
+
 ## Validating Loaded Data
 
 After importing data into PostgreSQL, validation queries are used to confirm that the data was loaded correctly.
@@ -405,7 +412,7 @@ The results are converted to integers using:
 General syntax:
 
 ```sql
-TO_CHAR(date_value, 'format')
+TO_CHAR(date_va lue, 'format')
 ```
 
 Examples:
@@ -465,3 +472,21 @@ date_key | full_date  | year | quarter | month_number | month_name | day | day_o
 ```
 
 This gives the dimensional model reusable calendar attributes for analyzing business metrics by year, quarter, month, date, and day of the week.
+
+### `OVER()`
+
+`OVER()` is used with a window function to perform a calculation across a set of rows **without combining those rows into one**.
+
+```text
+SUM( COUNT(*) ) OVER ()
+     └──────┘
+     count each group
+
+└──────────────────────┘
+then add all those group counts together
+without removing the individual rows
+```
+
+**Easy way to remember:**  
+`COUNT(*)` = count each group  
+`SUM(...) OVER()` = add the group counts together while keeping each group visible
