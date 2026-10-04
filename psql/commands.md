@@ -241,3 +241,227 @@ WHERE g.geolocation_zip_code_prefix IS NULL;
 Expected result: `7`
 
 These unmatched ZIP codes are why customer and seller ZIP prefixes were not defined as foreign keys to the geolocation table.
+
+## Creating a Date Dimension with `GENERATE_SERIES()`
+
+A date dimension provides calendar information that can be used for time-based analysis in a dimensional model.
+
+The following command creates `dim_date` by generating every calendar date between the earliest and latest purchase dates in the dataset.
+
+```sql
+CREATE TABLE dim_date AS
+SELECT
+    TO_CHAR(date_value, 'YYYYMMDD')::INTEGER AS date_key,
+    date_value::DATE AS full_date,
+    EXTRACT(YEAR FROM date_value)::INTEGER AS year,
+    EXTRACT(QUARTER FROM date_value)::INTEGER AS quarter,
+    EXTRACT(MONTH FROM date_value)::INTEGER AS month_number,
+    TO_CHAR(date_value, 'Month') AS month_name,
+    EXTRACT(DAY FROM date_value)::INTEGER AS day,
+    TO_CHAR(date_value, 'Day') AS day_of_week
+FROM GENERATE_SERIES(
+    '2016-09-04'::DATE,
+    '2018-10-17'::DATE,
+    '1 day'::INTERVAL
+) AS date_value;
+```
+
+### `CREATE TABLE ... AS`
+
+```sql
+CREATE TABLE dim_date AS
+SELECT ...
+```
+
+`CREATE TABLE ... AS` creates a new table using the results returned by a `SELECT` query.
+
+In this case, PostgreSQL generates and transforms a series of dates, then stores the results in a new table called `dim_date`.
+
+---
+
+### `GENERATE_SERIES()`
+
+```sql
+GENERATE_SERIES(
+    '2016-09-04'::DATE,
+    '2018-10-17'::DATE,
+    '1 day'::INTERVAL
+)
+```
+
+`GENERATE_SERIES()` generates a sequence of values.
+
+The three arguments specify:
+
+1. The starting value.
+2. The ending value.
+3. How much to increase the value each time.
+
+In this example:
+
+```text
+Start:     2016-09-04
+End:       2018-10-17
+Increment: 1 day
+```
+
+PostgreSQL therefore generates:
+
+```text
+2016-09-04
+2016-09-05
+2016-09-06
+2016-09-07
+...
+2018-10-17
+```
+
+```sql
+AS date_value
+```
+
+gives each generated date the name `date_value`, which can then be referenced by the `SELECT` statement.
+
+---
+
+### PostgreSQL Type Casting with `::`
+
+The `::` operator converts a value to another PostgreSQL data type.
+
+For example:
+
+```sql
+'2016-09-04'::DATE
+```
+
+converts the text value into a `DATE`.
+
+```sql
+'1 day'::INTERVAL
+```
+
+converts the text into a PostgreSQL time interval.
+
+```sql
+TO_CHAR(date_value, 'YYYYMMDD')::INTEGER
+```
+
+converts the formatted date text into an integer.
+
+General syntax:
+
+```sql
+value::data_type
+```
+
+---
+
+### `EXTRACT()`
+
+`EXTRACT()` retrieves a specific part of a date or timestamp.
+
+General syntax:
+
+```sql
+EXTRACT(part FROM date_value)
+```
+
+Examples:
+
+```sql
+EXTRACT(YEAR FROM date_value)
+EXTRACT(QUARTER FROM date_value)
+EXTRACT(MONTH FROM date_value)
+EXTRACT(DAY FROM date_value)
+```
+
+For the date:
+
+```text
+2017-09-13
+```
+
+these produce:
+
+```text
+YEAR     → 2017
+QUARTER  → 3
+MONTH    → 9
+DAY      → 13
+```
+
+The results are converted to integers using:
+
+```sql
+::INTEGER
+```
+
+---
+
+### `TO_CHAR()`
+
+`TO_CHAR()` converts a date or timestamp into formatted text.
+
+General syntax:
+
+```sql
+TO_CHAR(date_value, 'format')
+```
+
+Examples:
+
+```sql
+TO_CHAR(date_value, 'YYYYMMDD')
+```
+
+converts:
+
+```text
+2017-09-13 → 20170913
+```
+
+while:
+
+```sql
+TO_CHAR(date_value, 'Month')
+```
+
+produces:
+
+```text
+September
+```
+
+and:
+
+```sql
+TO_CHAR(date_value, 'Day')
+```
+
+produces:
+
+```text
+Wednesday
+```
+
+`EXTRACT()` is useful when a numeric part of a date is needed, while `TO_CHAR()` is useful when the date needs to be formatted as readable text.
+
+---
+
+### Result
+
+A generated date such as:
+
+```text
+2017-09-13
+```
+
+is transformed into a row containing:
+
+```text
+date_key | full_date  | year | quarter | month_number | month_name | day | day_of_week
+---------|------------|------|---------|--------------|------------|-----|------------
+20170913 | 2017-09-13 | 2017 |    3    |      9       | September  | 13  | Wednesday
+```
+
+This gives the dimensional model reusable calendar attributes for analyzing business metrics by year, quarter, month, date, and day of the week.
