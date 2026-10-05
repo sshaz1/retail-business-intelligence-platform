@@ -490,3 +490,64 @@ without removing the individual rows
 **Easy way to remember:**  
 `COUNT(*)` = count each group  
 `SUM(...) OVER()` = add the group counts together while keeping each group visible
+
+### Subqueries
+```sql
+SELECT
+    CASE
+        WHEN order_count = 1 THEN 'One-Time Customer'
+        ELSE 'Repeat Customer'
+    END AS customer_type,
+    COUNT(*) AS total_customers
+FROM (
+    SELECT
+        c.customer_unique_id,
+        COUNT(DISTINCT o.order_id) AS order_count
+    FROM orders AS o
+    INNER JOIN customers AS c
+        ON o.customer_id = c.customer_id
+    GROUP BY c.customer_unique_id
+) AS customer_orders
+GROUP BY customer_type
+ORDER BY total_customers DESC;
+```
+A **subquery** is a query inside another query. The inner query runs first, and the outer query uses its results.
+
+```sql
+FROM (
+    SELECT
+        c.customer_unique_id,
+        COUNT(DISTINCT o.order_id) AS order_count
+    FROM orders AS o
+    INNER JOIN customers AS c
+        ON o.customer_id = c.customer_id
+    GROUP BY c.customer_unique_id
+) AS customer_orders
+```
+
+The inner query creates a temporary result like:
+
+```text
+customer_unique_id    order_count
+Customer A            1
+Customer B            3
+Customer C            1
+Customer D            2
+```
+
+The outer query then uses `CASE` to classify those customers:
+
+```sql
+CASE
+    WHEN order_count = 1 THEN 'One-Time Customer'
+    ELSE 'Repeat Customer'
+END
+```
+
+So:
+
+- `1` order → **One-Time Customer**
+- More than `1` order → **Repeat Customer**
+
+**Easy way to remember:**  
+Subquery = calculate something first, then use those results in another query.

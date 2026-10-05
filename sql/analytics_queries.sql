@@ -149,3 +149,83 @@ SELECT
     MAX(delivery_days) AS slowest_delivery_days
 FROM orders
 WHERE delivery_days IS NOT NULL;
+
+-- ------------------------------------------------------------
+-- Payment Analysis
+-- ------------------------------------------------------------
+
+-- Analyze payment usage by payment type.
+-- The payments table is used directly because each row
+-- represents a payment transaction for an order.
+SELECT
+    payment_type,
+    COUNT(*) AS total_payments,
+    COUNT(DISTINCT order_id) AS total_orders,
+    SUM(payment_value) AS total_payment_value
+FROM payments
+GROUP BY payment_type
+ORDER BY total_payment_value DESC;
+
+-- Analyze credit card installment usage.
+-- This shows how frequently customers split credit card
+-- payments across different numbers of installments.
+-- Zero-installment records are excluded because they represent
+-- anomalous source data rather than a meaningful installment plan.
+SELECT
+    payment_installments,
+    COUNT(*) AS total_payments,
+    ROUND(AVG(payment_value), 2) AS avg_payment_value,
+    SUM(payment_value) AS total_payment_value
+FROM payments
+WHERE payment_type = 'credit_card'
+    AND payment_installments > 0
+GROUP BY payment_installments
+ORDER BY payment_installments;
+
+-- ------------------------------------------------------------
+-- Seller Performance
+-- ------------------------------------------------------------
+
+-- Compare the top sellers by merchandise sales and average
+-- merchandise value generated per order.
+-- fact_order_items is used because each row represents an item
+-- sold by a specific seller within an order.
+SELECT
+    seller_id,
+    COUNT(DISTINCT order_id) AS total_orders,
+    COUNT(*) AS total_items_sold,
+    SUM(price) AS total_merchandise_sales,
+    ROUND(
+        SUM(price) / COUNT(DISTINCT order_id),
+        2
+    ) AS avg_merchandise_value_per_order
+FROM fact_order_items
+GROUP BY seller_id
+ORDER BY total_merchandise_sales DESC
+LIMIT 10;
+
+-- ------------------------------------------------------------
+-- Customer Behaviour
+-- ------------------------------------------------------------
+
+-- Analyze how many unique customers placed one order versus
+-- multiple orders.
+-- customer_unique_id is used instead of customer_id because it
+-- identifies the same customer across different orders.
+SELECT
+    CASE
+        WHEN order_count = 1 THEN 'One-Time Customer'
+        ELSE 'Repeat Customer'
+    END AS customer_type,
+    COUNT(*) AS total_customers
+FROM (
+    SELECT
+        c.customer_unique_id,
+        COUNT(DISTINCT o.order_id) AS order_count
+    FROM orders AS o
+    INNER JOIN customers AS c
+        ON o.customer_id = c.customer_id
+    GROUP BY c.customer_unique_id
+) AS customer_orders
+GROUP BY customer_type
+ORDER BY total_customers DESC;
