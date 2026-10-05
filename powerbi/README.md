@@ -37,6 +37,18 @@ The initial Power BI model imports:
 
 ![Power BI Data Selection](../screenshots/data_selection.png)
 
+## Data Model Relationships
+
+Power BI relationships allow filters and calculations to work across related tables.
+
+```text
+products.product_id (1) → (*) fact_order_items.product_id
+```
+
+This is a **one-to-many relationship** with **single-direction filtering** from the dimension to the fact table.
+
+![Product Relationship](../screenshots/product_relationship.png)
+
 ## Power Query
 
 *To be documented as the project progresses.*
