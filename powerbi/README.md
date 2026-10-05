@@ -20,7 +20,7 @@ Connectivity Mode: Import
 
 The local development connection uses an unencrypted `localhost` connection. Production environments should use properly configured TLS encryption.
 
-![PostgreSQL Connection](screenshots/postgresql_connection.png)
+![PostgreSQL Connection](../screenshots/postgresql_connection.png)
 
 ## Data Selection
 
@@ -35,7 +35,7 @@ The initial Power BI model imports:
 
 `order_items` is not imported because the required item-level sales data is already represented by `fact_order_items`.
 
-![Power BI Data Selection](screenshots/data_selection.png)
+![Power BI Data Selection](../screenshots/data_selection.png)
 
 ## Power Query
 
