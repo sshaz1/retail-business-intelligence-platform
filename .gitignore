@@ -21,8 +21,9 @@ Thumbs.db
 *.tmp
 *.log
 
-# Power BI temporary files
+# Power BI
 *.pbit.cache
+*.pbix
 
 # Raw and processed data
 data/raw/*
