@@ -49,6 +49,22 @@ This is a **one-to-many relationship** with **single-direction filtering** from 
 
 ![Product Relationship](../screenshots/product_relationship.png)
 
+This Power BI model uses five active relationships:
+
+| From (1) | To (*) |
+|---|---|
+| `products.product_id` | `fact_order_items.product_id` |
+| `sellers.seller_id` | `fact_order_items.seller_id` |
+| `dim_date.date_key` | `fact_order_items.purchase_date_key` |
+| `orders.order_id` | `fact_order_items.order_id` |
+| `customers.customer_id` | `orders.customer_id` (1:1) |
+
+Relationships enable filtering across customers, orders, products, sellers, and sales while avoiding duplicate filtering paths.
+
+![Power BI Data Model](../screenshots/power_bi_data_model.png)
+
+**Customer Relationship Note:** In the Olist dataset, `customer_id` is unique to each order's customer record, making the Customers → Orders relationship 1:1. However, `customer_unique_id` identifies the same real customer across multiple orders and is used for repeat-customer analysis.
+
 ## Power Query
 
 *To be documented as the project progresses.*
