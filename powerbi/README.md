@@ -19,7 +19,6 @@ Connectivity Mode: Import
 ```
 
 The local development connection uses an unencrypted `localhost` connection. Production environments should use properly configured TLS encryption.
-
 ![PostgreSQL Connection](../screenshots/postgresql_connection.png)
 
 ## Data Selection
@@ -46,7 +45,6 @@ products.product_id (1) → (*) fact_order_items.product_id
 ```
 
 This is a **one-to-many relationship** with **single-direction filtering** from the dimension to the fact table.
-
 ![Product Relationship](../screenshots/product_relationship.png)
 
 This Power BI model uses five active relationships:
@@ -60,22 +58,85 @@ This Power BI model uses five active relationships:
 | `customers.customer_id` | `orders.customer_id` (1:1) |
 
 Relationships enable filtering across customers, orders, products, sellers, and sales while avoiding duplicate filtering paths.
-
 ![Power BI Data Model](../screenshots/power_bi_data_model.png)
 
 **Customer Relationship Note:** In the Olist dataset, `customer_id` is unique to each order's customer record, making the Customers → Orders relationship 1:1. However, `customer_unique_id` identifies the same real customer across multiple orders and is used for repeat-customer analysis.
 
 ## Power Query
 
-*To be documented as the project progresses.*
+Created a `purchase_date` column in the `orders` table by duplicating `order_purchase_timestamp` and converting it to **Date Only**.
+
+- **Original:** `2017-10-02 10:56:33`
+- **Transformed:** `2017-10-02`
+
+This preserves the original timestamp while providing a date-only column for daily reporting. The transformation is automatically reapplied during data refreshes.
+![Power Query Purchase Date Transformation](../screenshots/power_query_purchase_date.png)
 
 ## Data Model
 
 *To be documented as the project progresses.*
 
 ## DAX Measures
+```dax
+Total Merchandise Sales = SUM('public fact_order_items'[price])
+```
+- `SUM()` calculates the total of the `price` column.
+This measure represents merchandise sales, excluding freight charges.
+- **Validated result:** 13,591,643.70, matching our PostgreSQL analysis.
 
-*To be documented as the project progresses.*
+```dax
+Total Orders = DISTINCTCOUNT('public fact_order_items'[order_id])
+```
+- Counts unique orders without double-counting items.
+- **Validated SQL result:** 98,666 orders.
+
+```dax
+Average Order Value = DIVIDE([Total Merchandise Sales], [Total Orders])
+```
+- Calculates average merchandise sales per order using existing measures.
+- **Validated SQL result:** 137.75.
+
+```dax
+Late Delivery Rate =
+DIVIDE(
+    CALCULATE(COUNTROWS('public orders'), 'public orders'[delivery_status] = "Late"),
+    CALCULATE(COUNTROWS('public orders'), 'public orders'[delivery_status] <> "Missing Delivery Data")
+)
+```
+- Calculates the percentage of late orders, excluding missing delivery data.
+- `COUNTROWS()` counts the rows in a table.
+- `CALCULATE(what_to_calculate, filter_conditions)` evaluates an expression using specified filters.
+- `<>` == not equal to
+- **Validated SQL result:** 6.77%.
+
+```dax
+Average Delivery Time = AVERAGE('public orders'[delivery_days])
+```
+- Calculates the average number of days between purchase and delivery.
+- `AVERAGE()` calculates the mean of a numeric column, excluding blanks.
+- **Validated SQL result:** 12.09 days.
+
+```dax
+Total Items Sold = COUNTROWS('public fact_order_items')
+```
+- Counts the total number of items sold across all orders.
+- **Validated SQL result:** 112,650 items.
+
+### Monthly Merchandise Sales
+
+- Line chart showing merchandise sales by year, quarter, and month.
+- Uses `dim_date.full_date` and the `Total Merchandise Sales` DAX measure.
+- Highlights monthly sales trends across the dataset.
+
+![Monthly Sales Trend](../screenshots/monthly_sales_trend.png)
+
+### Top 10 Product Categories by Sales
+
+- Horizontal bar chart ranking the 10 highest-selling product categories.
+- Uses `products.product_category_name_english` and the `Total Merchandise Sales` DAX measure.
+- Applies a Top N filter to identify leading categories.
+
+![Top Product Categories](../screenshots/top_product_categories.png)
 
 ## Dashboard
 
