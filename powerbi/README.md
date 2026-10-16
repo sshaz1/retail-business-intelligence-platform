@@ -152,4 +152,28 @@ Total Items Sold = COUNTROWS('public fact_order_items')
 
 ## Dashboard
 
-*To be documented as the project progresses.*
+### Sales Overview Dashboard
+![Sales Overview Dashboard](../screenshots/sales_overview_dashboard.png)
+
+- Displays four key performance indicators: Total Merchandise Sales, Total Orders, Average Order Value, and Total Items Sold.
+- Visualizes monthly merchandise sales trends to identify revenue growth and fluctuations over time.
+- Ranks the top 10 product categories by merchandise sales.
+- Uses Brazilian reais (R$) for monetary values.
+- Excludes incomplete final-month data from the monthly sales trend using a visual-level date filter, while preserving overall KPI totals.
+
+### Product & Customer Analysis Dashboard
+![Product & Customer Analysis Dashboard](../screenshots/product_customer_dashboard.png)
+
+- Compares merchandise sales and items sold across the top 10 product categories using a combination chart.
+- Identifies the top 10 Brazilian states by total merchandise sales.
+- Uses `Total Orders` as a tooltip to provide additional context for state-level sales.
+- Highlights differences between product sales revenue, sales volume, and geographic performance.
+
+### Delivery Performance Dashboard
+![Delivery Performance Dashboard](../screenshots/delivery_performance_dashboard.png)
+
+- Displays total orders, late delivery rate, and average delivery time as KPI cards.
+- Visualizes the distribution of early, late, on-time, and missing delivery statuses.
+- Compares late delivery rates and average delivery times across Brazilian states.
+- Applies a visual-level filter of **Order Count ≥ 100** to both state charts to exclude states with small order volumes.
+- Highlights regional differences in delivery reliability and shipping performance.
