@@ -19,6 +19,7 @@ Connectivity Mode: Import
 ```
 
 The local development connection uses an unencrypted `localhost` connection. Production environments should use properly configured TLS encryption.
+
 ![PostgreSQL Connection](../screenshots/postgresql_connection.png)
 
 ## Data Selection
@@ -45,6 +46,7 @@ products.product_id (1) → (*) fact_order_items.product_id
 ```
 
 This is a **one-to-many relationship** with **single-direction filtering** from the dimension to the fact table.
+
 ![Product Relationship](../screenshots/product_relationship.png)
 
 This Power BI model uses five active relationships:
@@ -58,6 +60,7 @@ This Power BI model uses five active relationships:
 | `customers.customer_id` | `orders.customer_id` (1:1) |
 
 Relationships enable filtering across customers, orders, products, sellers, and sales while avoiding duplicate filtering paths.
+
 ![Power BI Data Model](../screenshots/power_bi_data_model.png)
 
 **Customer Relationship Note:** In the Olist dataset, `customer_id` is unique to each order's customer record, making the Customers → Orders relationship 1:1. However, `customer_unique_id` identifies the same real customer across multiple orders and is used for repeat-customer analysis.
@@ -70,6 +73,7 @@ Created a `purchase_date` column in the `orders` table by duplicating `order_pur
 - **Transformed:** `2017-10-02`
 
 This preserves the original timestamp while providing a date-only column for daily reporting. The transformation is automatically reapplied during data refreshes.
+
 ![Power Query Purchase Date Transformation](../screenshots/power_query_purchase_date.png)
 
 ## Data Model
@@ -136,7 +140,15 @@ Total Items Sold = COUNTROWS('public fact_order_items')
 - Uses `products.product_category_name_english` and the `Total Merchandise Sales` DAX measure.
 - Applies a Top N filter to identify leading categories.
 
-![Top Product Categories](../screenshots/top_product_categories.png)
+![Top 10 Product Categories by Sale](../screenshots/top_product_categories.png)
+
+### Average Delivery Time by State
+
+- Horizontal bar chart comparing average delivery time (days) across Brazilian states.
+- Uses `customers.customer_state` and the `Average Delivery Time` DAX measure.
+- Applied a visual-level filter of `Order Count >= 100` to exclude states with fewer than 100 orders, reducing misleading comparisons caused by small sample sizes.
+
+![Average Delivery Time by State](../screenshots/average_delivery_time_by_state.png)
 
 ## Dashboard
 
