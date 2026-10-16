@@ -25,13 +25,13 @@ Data Model & DAX
 Dashboards, KPIs & Business Insights
 ```
 
-## Dimensional Modelling
+### Dimensional Modelling
 
 Dimensional modelling reorganizes relational data into structures designed for analytics and reporting.
 
 The model separates measurable business events into **fact tables** and descriptive information used to analyze those events into **dimension tables**.
 
-### Facts and Dimensions
+#### Facts and Dimensions
 
 **Fact tables** represent measurable business events or processes, such as:
 
@@ -56,11 +56,11 @@ Rather than simply copying the existing relational tables, dimensional tables ar
 
 ---
 
-## Sales Fact Table — `fact_order_items`
+### Sales Fact Table — `fact_order_items`
 
 The first fact table represents the **product sales** business process.
 
-### Grain
+#### Grain
 
 The grain of `fact_order_items` is:
 
@@ -70,7 +70,7 @@ An order containing three items therefore produces three rows in the fact table.
 
 The combination of `order_id` and `order_item_id` uniquely identifies each fact record and is used as the table's composite primary key.
 
-### Source Tables
+#### Source Tables
 
 The fact table is created primarily from the relational `order_items` table.
 
@@ -99,7 +99,7 @@ Before creating the fact table, the join was validated to ensure that it:
 - Did not create duplicate `order_id` and `order_item_id` combinations.
 - Maintained the intended grain of one row per item within an order.
 
-### Current Structure
+#### Current Structure
 
 ```text
 fact_order_items
@@ -114,14 +114,14 @@ price
 freight_value
 ```
 
-### Identifiers
+#### Identifiers
 
 - `order_id` — Identifies the order containing the item.
 - `order_item_id` — Identifies the item within the order.
 
 Together, these columns form the composite primary key.
 
-### Descriptive Keys
+#### Descriptive Keys
 
 - `customer_id` — Identifies the customer who placed the order.
 - `product_id` — Identifies the product that was purchased.
@@ -129,14 +129,14 @@ Together, these columns form the composite primary key.
 
 These identifiers can later connect the fact table to analytical dimensions as the dimensional model develops.
 
-### Measures
+#### Measures
 
 - `price` — Price of the product.
 - `freight_value` — Freight/shipping charge associated with the item.
 
 Additional measures can later be calculated from these base values in Power BI using DAX.
 
-### Purchase Timestamp
+#### Purchase Timestamp
 
 `order_purchase_timestamp` is currently included in the fact table because it identifies when the sale occurred.
 
@@ -144,13 +144,13 @@ As the dimensional model develops, the purchase date will be connected to a dedi
 
 ---
 
-## Date Dimension — `dim_date`
+#### Date Dimension — `dim_date`
 
 The `dim_date` table will provide a dedicated calendar structure for analyzing sales over time.
 
 Unlike the relational source tables, the Olist dataset does not contain a dedicated date table. The date dimension will therefore be generated from the date range contained in the order data.
 
-### Grain
+#### Grain
 
 The grain of `dim_date` will be:
 
@@ -165,7 +165,7 @@ date_key | full_date  | year | quarter | month_number | month_name
 20170914 | 2017-09-14 | 2017 |    3    |      9       | September
 ```
 
-### Purpose
+#### Purpose
 
 The date dimension will allow sales to be analyzed consistently by calendar attributes such as:
 
@@ -178,7 +178,7 @@ The date dimension will allow sales to be analyzed consistently by calendar attr
 
 This supports analyses such as monthly sales trends, quarterly performance, yearly comparisons, and sales by day of week.
 
-### Relationship to the Sales Fact
+#### Relationship to the Sales Fact
 
 The purchase date associated with each order item will eventually connect `fact_order_items` to `dim_date`.
 
@@ -191,3 +191,29 @@ The purchase date associated with each order item will eventually connect `fact_
 ```
 
 The dimensional model will continue to evolve as additional analytical requirements are introduced.
+
+
+## Machine Learning — Late Delivery Prediction
+
+### Objective
+Develop a binary classification model to predict whether an e-commerce order will arrive late using information available at the time of purchase.
+
+### Prediction Target
+- `is_late = 1`: Order delivered after its estimated delivery date.
+- `is_late = 0`: Order delivered on or before its estimated delivery date.
+- Orders with missing delivery outcomes are excluded from training.
+
+### Planned ML Pipeline
+1. **Data Extraction:** Retrieve historical order, customer, product, and seller data from PostgreSQL.
+2. **Feature Engineering:** Create predictive features using information available at purchase time.
+3. **Data Preprocessing:** Handle missing values and encode categorical variables.
+4. **Train/Test Split:** Separate historical data chronologically to evaluate performance on newer orders.
+5. **Model Training:** Train a Logistic Regression baseline and compare it with a Random Forest classifier.
+6. **Model Evaluation:** Evaluate precision, recall, F1-score, and confusion matrices.
+
+### Key Considerations
+- **Data Leakage:** Exclude actual delivery dates, delivery duration, and other information unavailable at purchase time from model features.
+- **Class Imbalance:** Late deliveries represent approximately 6.8% of orders with known delivery outcomes. Accuracy alone is therefore insufficient for evaluation.
+- **Business Application:** Identify orders at risk of late delivery so operations teams can prioritize preventive action.
+
+**Status:** Planned — model development in progress.
