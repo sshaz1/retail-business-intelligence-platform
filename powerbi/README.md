@@ -177,3 +177,48 @@ Total Items Sold = COUNTROWS('public fact_order_items')
 - Compares late delivery rates and average delivery times across Brazilian states.
 - Applies a visual-level filter of **Order Count ≥ 100** to both state charts to exclude states with small order volumes.
 - Highlights regional differences in delivery reliability and shipping performance.
+
+
+### Late Delivery Risk Prediction
+
+Integrates Gradient Boosting predictions into Power BI to analyze late-delivery risk across 19,262 historical test orders.
+
+**Key Features:**
+- KPI cards for predicted late orders, actual late orders, correctly identified late orders, and model recall.
+- Donut chart comparing correct alerts and false alarms.
+- Column chart showing low, medium, and high delivery risk.
+- Geographic map displaying average predicted risk across Brazilian states.
+- Uses a 15% prediction threshold to identify high-risk orders.
+
+![Late Delivery Risk Prediction Dashboard](../screenshots/late_delivery_risk_dashboard.png)
+
+
+## Machine Learning Integration
+
+### Late Delivery Predictions Import
+
+- Imported `late_delivery_predictions.csv` using Power BI's Text/CSV connector.
+- Contains 19,262 test orders predicted by the Gradient Boosting model.
+- Includes order IDs, late-delivery risk scores, predicted outcomes, and actual outcomes.
+
+![Late Delivery Predictions Import](../screenshots/late_delivery_csv_import.png)
+
+### Power Query
+
+- Renamed the query to `late_delivery_predictions`.
+- Verified column types: `order_id` (Text), `late_risk_score` (Decimal Number), `predicted_late` and `actual_late` (Whole Number).
+- Prepared the dataset for integration with the existing `orders` table.
+
+![Late Delivery Predictions Power Query](../screenshots/late_delivery_power_query.png)
+
+
+### Data Model Relationship
+
+- Connected `late_delivery_predictions` to `public orders` using `order_id`.
+- Created an active **one-to-one (1:1)** relationship with bidirectional filtering.
+- Enables analysis of predicted late-delivery risk alongside existing order and customer data.
+
+![Machine Learning Data Model](../screenshots/ml_data_model.png)
+
+
+
