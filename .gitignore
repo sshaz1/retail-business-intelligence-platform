@@ -29,6 +29,9 @@ Thumbs.db
 data/raw/*
 data/processed/*
 
+# Ignore all CSV files
+*.csv
+
 # Keep directories in Git for layout
 !data/raw/.gitkeep
 !data/processed/.gitkeep
