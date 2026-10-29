@@ -3,11 +3,13 @@
 
 ## Overview
 
-An end-to-end business intelligence and analytics project that transforms raw retail data into actionable business insights using Python, PostgreSQL, SQL, Power BI, and machine learning.
+An end-to-end business intelligence and analytics project that transforms raw retail data into actionable business insights using Python, PostgreSQL, SQL, Power BI, machine learning, and Microsoft Power Automate.
 
-Built using the Brazilian E-Commerce Public Dataset by Olist, the project covers data exploration, data cleaning, relational database development, dimensional modelling, SQL analysis, interactive dashboards, and predictive analytics.
+Built using the Brazilian E-Commerce Public Dataset by Olist, the project covers data exploration, data cleaning, relational database development, dimensional modelling, SQL analysis, interactive dashboards, predictive analytics, and automated reporting.
 
-The platform also integrates a machine learning model into Power BI to identify orders at risk of late delivery, demonstrating how predictive analytics can support operational decision-making.
+The platform integrates a machine learning model into Power BI to identify orders at risk of late delivery. A scheduled Power Automate workflow also retrieves prediction records, identifies high-risk orders, calculates summary metrics, and delivers automated HTML email reports through Outlook.
+
+Together, these components demonstrate how descriptive analytics, predictive modelling, and workflow automation can support data-driven operational decision-making.
 
 ## Project Objectives
 
@@ -18,7 +20,7 @@ The platform also integrates a machine learning model into Power BI to identify 
 - Design interactive Power BI dashboards and business KPIs using DAX.
 - Train and evaluate a machine learning model to predict late deliveries.
 - Integrate machine learning predictions into Power BI for business reporting.
-- Explore opportunities for automated reporting and operational alerts.
+- Automate scheduled delivery-risk reporting using Power Automate, Excel Online, and Outlook.
 
 ## Dataset
 
@@ -42,7 +44,7 @@ To reproduce the project:
 2. Extract the downloaded archive.
 3. Place the CSV files inside the `data/raw/` directory.
 
-```text
+```text id="data-layout"
 data/raw/
 ├── olist_customers_dataset.csv
 ├── olist_geolocation_dataset.csv
@@ -65,59 +67,80 @@ data/raw/
 | Data Modelling | Relational and Dimensional Modelling |
 | Business Intelligence | Power BI, Power Query, DAX |
 | Machine Learning | scikit-learn, Gradient Boosting |
+| Workflow Automation | Microsoft Power Automate |
+| Cloud Data Storage | Excel Online, OneDrive for Business |
+| Email Reporting | Microsoft Outlook, HTML |
 | Development Tools | Jupyter Notebook, Git, GitHub |
 
 ## Project Architecture
 
-The project follows a structured analytics workflow, transforming raw transactional data into business intelligence reports and predictive insights.
+The project follows an end-to-end analytics workflow, transforming raw transactional data into business intelligence reports, predictive insights, and automated reporting.
 
-```text
+```text id="architecture"
 Brazilian E-Commerce Dataset (Olist)
-                 |
-                 v
-        Python Data Preparation
+                |
+                v
+       Python Data Preparation
        (Cleaning & Transformation)
-                 |
-                 v
-          PostgreSQL Database
-                 |
-          +------+------+
-          |             |
-          v             v
-     SQL Analysis   Dimensional Model
-          |             |
-          +------+------+
-                 |
-                 v
+                |
+                v
+         PostgreSQL Database
+                |
+         +------+------+
+         |             |
+         v             v
+    SQL Analysis   Dimensional Model
+         |             |
+         +------+------+
+                |
+                v
           Power BI Reports
-                 |
-                 v
+                |
+                v
           Business Insights
 
 
-      Historical Order Data
-                 |
-                 v
-      Feature Engineering
-                 |
-                 v
-     Gradient Boosting Model
-                 |
-                 v
-      Late Delivery Predictions
-                 |
-                 v
-       Power BI Integration
-                 |
-                 v
-      Delivery Risk Dashboard
+       Historical Order Data
+                |
+                v
+         Feature Engineering
+                |
+                v
+      Gradient Boosting Model
+                |
+                v
+       Late Delivery Predictions
+                |
+         +------+------+
+         |             |
+         v             v
+   Power BI Risk    Excel Online
+     Dashboard           |
+                         v
+                   Power Automate
+                   (Daily Schedule)
+                         |
+                         v
+                  Filter High-Risk
+                       Orders
+                         |
+                         v
+                   Calculate Risk
+                       Metrics
+                         |
+                         v
+                    Outlook Email
+                      Report
 ```
 
 The predictive analytics workflow uses historical order information available at carrier handoff to estimate late-delivery risk.
 
+Power Automate reads exported predictions and generates scheduled email summaries. The automation does not retrain or rerun the machine learning model.
+
 ## Repository Structure
 
-```text
+```text id="repository-layout"
+automation/        Power Automate workflow documentation and screenshots
 data/              Raw and processed datasets (stored locally)
 docs/              Project documentation
 machine_learning/  Late-delivery prediction notebook and ML workflow
@@ -171,7 +194,6 @@ SQL is used to explore retail performance and answer business questions related 
 
 These analyses support the KPIs and visualizations developed in Power BI.
 
-
 ## Power BI Business Intelligence
 
 Four interactive Power BI report pages were developed to analyze retail performance and predictive delivery risk.
@@ -181,6 +203,7 @@ Four interactive Power BI report pages were developed to analyze retail performa
 Provides a high-level overview of retail sales performance.
 
 **Key Features:**
+
 - Total sales, total orders, and average order value.
 - Monthly sales trends.
 - Product category performance.
@@ -193,6 +216,7 @@ Provides a high-level overview of retail sales performance.
 Explores customer purchasing patterns and product performance.
 
 **Key Features:**
+
 - Product category comparisons.
 - Customer and geographic analysis.
 - Purchasing behaviour and sales distribution.
@@ -205,6 +229,7 @@ Explores customer purchasing patterns and product performance.
 Analyzes historical order fulfilment and delivery performance.
 
 **Key Features:**
+
 - Late-delivery rates.
 - Delivery time analysis.
 - Geographic delivery performance.
@@ -217,6 +242,7 @@ Analyzes historical order fulfilment and delivery performance.
 Integrates machine learning predictions into Power BI to identify orders with elevated late-delivery risk.
 
 **Key Features:**
+
 - KPI cards for predicted late orders, actual late orders, correctly identified late orders, and model recall.
 - Donut chart comparing correct late-delivery alerts and false alarms.
 - Column chart showing predicted risk categories.
@@ -224,6 +250,7 @@ Integrates machine learning predictions into Power BI to identify orders with el
 - A 15% prediction threshold used to classify potentially late orders.
 
 ![Late Delivery Risk Prediction Dashboard](screenshots/late_delivery_risk_dashboard.png)
+
 For dashboard development, data modelling, and DAX implementation details, see the [Power BI Documentation](powerbi/README.md).
 
 ## Machine Learning: Late Delivery Prediction
@@ -253,10 +280,51 @@ The predictions support interactive analysis of delivery risk, model performance
 
 For implementation details, see the [Late Delivery Prediction Notebook](machine_learning/late_delivery_prediction.ipynb) and the [Power BI Documentation](powerbi/README.md).
 
+## Automated Reporting: Microsoft Power Automate
+
+Developed a scheduled reporting workflow using Microsoft Power Automate, Excel Online, OneDrive for Business, and Outlook.
+
+The workflow uses predictions exported from the machine learning model to automatically generate daily late-delivery risk summaries.
+
+### Workflow Components
+
+1. **Recurrence Trigger:** Initiates the workflow on a daily schedule.
+2. **Excel Online:** Retrieves machine learning prediction records from the `DeliveryPredictions` table.
+3. **Filter Array:** Identifies orders classified as high-risk using the model's 15% prediction threshold.
+4. **Dynamic Calculations:** Calculates total orders analyzed, high-risk order counts, and high-risk percentages.
+5. **Outlook Email:** Delivers a formatted HTML report containing the calculated metrics.
+
+### Successful Test Results
+
+The workflow was successfully tested on October 29, 2026.
+
+| Metric | Result |
+|--------|--------|
+| Orders Analyzed | 5,120 |
+| High-Risk Orders | 70 |
+| High-Risk Percentage | 1.37% |
+| Classification Threshold | 15% |
+| Email Delivery | Successful |
+
+The test confirmed successful data retrieval, risk filtering, metric calculations, and HTML email delivery.
+
+### Automated Email Report
+
+![Automated Late Delivery Risk Report](automation/screenshots/07_email_test.png)
+
+### Current Limitations
+
+- The complete prediction dataset contains 19,262 records. The current workflow has not been validated for full-dataset processing.
+- Prediction data must be refreshed separately; the workflow does not automatically execute the machine learning model.
+- Reports summarize historical predictions rather than monitoring live deliveries.
+
+For workflow configuration, Power Automate expressions, implementation screenshots, and testing details, see the [Power Automate Documentation](automation/README.md).
+
 ## Future Enhancements
 
-- Implement automated KPI reporting and notifications using Microsoft Power Automate.
-- Develop operational alerts for orders with elevated predicted delivery risk.
+- Implement batching or an alternative data retrieval method to process the complete prediction dataset.
+- Automate the machine learning prediction refresh process.
+- Develop operational alerts containing individual high-risk order details.
 - Evaluate probability calibration and alternative classification thresholds.
 - Explore additional features and modelling techniques to improve late-delivery detection.
 - Extend the analytics platform with more advanced business forecasting.
@@ -267,8 +335,9 @@ This project demonstrates an end-to-end analytics workflow combining:
 
 - **Data Engineering:** Data preparation, transformation, and relational database development.
 - **SQL Analytics:** Business performance analysis and dimensional data modelling.
-- **Business Intelligence:** Interactive Power BI dashboards and DAX-based KPIs.
+- **Business Intelligence:** Four interactive Power BI dashboards and DAX-based KPIs.
 - **Machine Learning:** Feature engineering, classification, model evaluation, and prediction export.
 - **Predictive BI:** Integration of machine learning outputs into business reporting.
+- **Workflow Automation:** Scheduled risk reporting using Power Automate, Excel Online, and Outlook.
 
-The resulting platform demonstrates how historical retail data can be transformed into descriptive and predictive insights that support business decision-making.
+The resulting platform demonstrates how historical retail data can be transformed into descriptive and predictive insights, then incorporated into automated reporting workflows to support business decision-making.
